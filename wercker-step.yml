@@ -7,7 +7,7 @@ properties:
     required: true
   token:
     type: string
-    required: true
+    required: false
   target-directory:
     type: string
     required: false
