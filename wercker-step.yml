@@ -1,0 +1,13 @@
+name: go-appengine-util
+version: 0.0.1
+description: Deploy Go software to Google's AppEngine
+properties:
+  method:
+    type: string
+    required: true
+  token:
+    type: string
+    required: true
+  target-directory:
+    type: string
+    required: false
