@@ -2,7 +2,22 @@
 
 GAE_VERSION_LOG_FILE=go_appengine_version
 
-# check update
+install_deps_if_needed() {
+  if hash unzip ; then
+    :
+  else
+    debug "unzip is not found."
+
+    if hash apt-get ; then
+      sudo apt-get install unzip -y
+    elif hash yum ; then
+      sudo yum install unzip -y
+    else
+      fail "Not found neither suitable package manager nor unzip."
+    fi
+  fi
+}
+
 check_update() {
   if [ -z $LATEST ]; then
     LAST_MODIFIED=`echo stat -c %Y $GAE_VERSION_LOG_FILE 2> /dev/null`
@@ -51,8 +66,8 @@ fetch_sdk_if_needed() {
   fi
 }
 
+install_deps_if_needed
 fetch_sdk_if_needed
-
 
 debug 'Set $PATH and $GOPATH'
 export PATH="$WERCKER_CACHE_DIR/go_appengine":$PATH
@@ -61,12 +76,12 @@ export GOPATH="$WERCKER_SOURCE_DIR"
 debug 'Display $GOPATH'
 goapp env GOPATH
 
-cd $WERCKER_APPENGINE_UTIL_TARGET_DIRECTORY
+cd $WERCKER_GO_APPENGINE_UTIL_TARGET_DIRECTORY
 
-case $WERCKER_APPENGINE_UTIL_METHOD in
+case $WERCKER_GO_APPENGINE_UTIL_METHOD in
   deploy)
     info "goapp deploy"
-    $WERCKER_CACHE_DIR/go_appengine/appcfg.py update "$WERCKER_SOURCE_DIR" --oauth2_refresh_token="$WERCKER_APPENGINE_UTIL_TOKEN"
+    $WERCKER_CACHE_DIR/go_appengine/appcfg.py update "$WERCKER_SOURCE_DIR" --oauth2_refresh_token="$WERCKER_GO_APPENGINE_UTIL_TOKEN"
     ;;
   get)
     info "goapp get"
@@ -81,7 +96,7 @@ case $WERCKER_APPENGINE_UTIL_METHOD in
     goapp build
     ;;
   *)
-    fail "Unknown parameter: $WERCKER_APPENGINE_UTIL_METHOD"
+    fail "Unknown parameter: $WERCKER_GO_APPENGINE_UTIL_METHOD"
 esac
 
-success "$WERCKER_APPENGINE_UTIL_METHOD is Finished."
+success "$WERCKER_GO_APPENGINE_UTIL_METHOD is Finished."
