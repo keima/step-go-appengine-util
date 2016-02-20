@@ -9,7 +9,7 @@ install_deps_if_needed() {
     debug "unzip is not found."
 
     if hash apt-get ; then
-      sudo apt-get install unzip -y
+      sudo apt-get update; sudo apt-get install unzip -y
     elif hash yum ; then
       sudo yum install unzip -y
     else
