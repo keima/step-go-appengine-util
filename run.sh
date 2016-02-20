@@ -4,7 +4,7 @@ GAE_VERSION_LOG_FILE=go_appengine_version
 
 install_deps_if_needed() {
   if hash unzip ; then
-    :
+    return 0
   else
     debug "unzip is not found."
 
@@ -15,6 +15,8 @@ install_deps_if_needed() {
     else
       fail "Not found neither suitable package manager nor unzip."
     fi
+
+    return $?
   fi
 }
 
@@ -41,32 +43,50 @@ semverlte() {
 }
 
 do_upgrade() {
-  cd $WERCKER_CACHE_DIR
-  FILE=go_appengine_sdk_linux_amd64-$LATEST.zip
-  curl -O https://storage.googleapis.com/appengine-sdks/featured/$FILE
-  unzip -q $FILE -d $HOME
+  if [ -z $LATEST ] ; then
+    cd $WERCKER_CACHE_DIR
+    FILE=go_appengine_sdk_linux_amd64-$LATEST.zip
+    curl -O https://storage.googleapis.com/appengine-sdks/featured/$FILE
+    if $? ; then
+      fail "curl error"
+    fi
+
+    unzip -q $FILE -d $HOME
+    if $? ; then
+      fail "unzip error"
+    fi
+  else
+    fail "\$LATEST is empty"
+  fi
 }
 
 # fetch GAE/Go SDKs if needed
 fetch_sdk_if_needed() {
+
+  if check_update ; then
+    :
+  else
+    warn "check_update is failed. Probably using in-cache SDK."
+  fi
+
   if [ -f "$WERCKER_CACHE_DIR/go_appengine/appcfg.py" ]; then
     debug "appcfg.py found in cache"
 
-    if check_update ; then
-      VERSION_CACHE=`echo $GAE_VERSION_LOG_FILE 2> /dev/null`
-      if [ ! -z $VERSION_CACHE ] && [ ! semverlte $LATEST $VERSION_CACHE ]; then
-        info "go-appengine sdk ver. $LATEST is available. It's time to update!"
-        do_upgrade
-      fi
-    else
-      warn "check_update is failed. Using in-cache SDK."
+    VERSION_CACHE=`echo $GAE_VERSION_LOG_FILE 2> /dev/null`
+    if [ ! -z $VERSION_CACHE ] && [ ! semverlte $LATEST $VERSION_CACHE ]; then
+      info "go-appengine sdk ver. $LATEST is available. It's time to update!"
+      do_upgrade
     fi
   else
     do_upgrade
   fi
 }
 
-install_deps_if_needed
+if install_deps_if_needed ; then {
+  # if failed , show message and exit
+  fail "[install_deps_if_needed] failed. Show output log."
+}
+
 fetch_sdk_if_needed
 
 debug 'Set $PATH and $GOPATH'
