@@ -1,9 +1,9 @@
+#!/usr/bin/env bash
 
 GAE_VERSION_LOG_FILE=go_appengine_version
 
 # check update
-check_update()
-{
+check_update() {
   if [ -z $LATEST ]; then
     LAST_MODIFIED=`echo stat -c %Y $GAE_VERSION_LOG_FILE 2> /dev/null`
     CURRENT_TIME=`date +"%s"`
@@ -21,13 +21,11 @@ check_update()
 #   semverlte 1.2.3 1.2.3 -> true
 #   semverlte 1.2.4 1.2.3 -> false
 # @see http://stackoverflow.com/a/4024263
-semverlte()
-{
+semverlte() {
     [  "$1" = "`echo -e "$1\n$2" | sort -V | head -n1`" ]
 }
 
-do_upgrade()
-{
+do_upgrade() {
   cd $WERCKER_CACHE_DIR
   FILE=go_appengine_sdk_linux_amd64-$LATEST.zip
   curl -O https://storage.googleapis.com/appengine-sdks/featured/$FILE
@@ -35,26 +33,25 @@ do_upgrade()
 }
 
 # fetch GAE/Go SDKs if needed
-fetch_sdk_if_needed()
-{
+fetch_sdk_if_needed() {
   if [ -f "$WERCKER_CACHE_DIR/go_appengine/appcfg.py" ]; then
     debug "appcfg.py found in cache"
 
-    if check_update(); then
+    if check_update ; then
       VERSION_CACHE=`echo $GAE_VERSION_LOG_FILE 2> /dev/null`
       if [ ! -z $VERSION_CACHE ] && [ ! semverlte $LATEST $VERSION_CACHE ]; then
         info "go-appengine sdk ver. $LATEST is available. It's time to update!"
-        do_upgrade()
+        do_upgrade
       fi
     else
       warn "check_update is failed. Using in-cache SDK."
     fi
   else
-    do_upgrade()
+    do_upgrade
   fi
 }
 
-fetch_sdk_if_needed()
+fetch_sdk_if_needed
 
 
 debug 'Set $PATH and $GOPATH'
