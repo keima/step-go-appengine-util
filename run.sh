@@ -19,6 +19,7 @@ install_deps_if_needed() {
     if hash unzip ; then
       return 0
     else
+      debug "unzip is not found."
       return 1
     fi
   fi
