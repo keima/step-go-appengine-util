@@ -87,7 +87,8 @@ fetch_sdk_if_needed() {
   fi
 }
 
-if install_deps_if_needed ; then
+install_deps_if_needed
+if $? ; then
   # if failed , show message and exit
   fail "[install_deps_if_needed] failed. Show output log."
 fi
