@@ -16,7 +16,11 @@ install_deps_if_needed() {
       fail "Not found neither suitable package manager nor unzip."
     fi
 
-    return $?
+    if hash unzip ; then
+      return 0
+    else
+      return 1
+    fi
   fi
 }
 
