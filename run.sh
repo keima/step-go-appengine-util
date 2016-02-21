@@ -4,7 +4,7 @@ GAE_VERSION_LOG_FILE=go_appengine_version
 
 install_deps_if_needed() {
   if hash unzip ; then
-    return true
+    return 0
   else
     debug "unzip is not found."
 
@@ -17,18 +17,18 @@ install_deps_if_needed() {
     fi
 
     if hash unzip ; then
-      return true
+      return 0
     else
       debug "unzip is not found."
-      return false
+      return 1
     fi
   fi
 }
 
 check_update() {
   if [ -z $LATEST ]; then
-    LAST_MODIFIED=$(echo stat -c %Y $GAE_VERSION_LOG_FILE 2> /dev/null)
-    CURRENT_TIME=`date +"%s"`
+    LAST_MODIFIED=$(stat -c%Y $GAE_VERSION_LOG_FILE 2> /dev/null)
+    CURRENT_TIME=$(date +"%s")
     if [ -z LAST_MODIFIED ] || [ CURRENT_TIME -gt $(( LAST_MODIFIED + 7 * 24 * 60 * 60 )) ]; then
       export LATEST=`curl https://appengine.google.com/api/updatecheck | grep release | grep -Eo '[0-9\.]+'`
     else
