@@ -4,7 +4,7 @@ GAE_VERSION_LOG_FILE=go_appengine_version
 
 install_deps_if_needed() {
   if hash unzip ; then
-    return 0
+    return true
   else
     debug "unzip is not found."
 
@@ -17,17 +17,17 @@ install_deps_if_needed() {
     fi
 
     if hash unzip ; then
-      return 0
+      return true
     else
       debug "unzip is not found."
-      return 1
+      return false
     fi
   fi
 }
 
 check_update() {
   if [ -z $LATEST ]; then
-    LAST_MODIFIED=`echo stat -c %Y $GAE_VERSION_LOG_FILE 2> /dev/null`
+    LAST_MODIFIED=$(echo stat -c %Y $GAE_VERSION_LOG_FILE 2> /dev/null)
     CURRENT_TIME=`date +"%s"`
     if [ -z LAST_MODIFIED ] || [ CURRENT_TIME -gt $(( LAST_MODIFIED + 7 * 24 * 60 * 60 )) ]; then
       export LATEST=`curl https://appengine.google.com/api/updatecheck | grep release | grep -Eo '[0-9\.]+'`
@@ -51,6 +51,9 @@ do_upgrade() {
   if [ -z $LATEST ] ; then
     cd $WERCKER_CACHE_DIR
     FILE=go_appengine_sdk_linux_amd64-$LATEST.zip
+
+    debug "Download $FILE ..."
+
     curl -O https://storage.googleapis.com/appengine-sdks/featured/$FILE
     if $? ; then
       fail "curl error"
@@ -68,9 +71,7 @@ do_upgrade() {
 # fetch GAE/Go SDKs if needed
 fetch_sdk_if_needed() {
 
-  if check_update ; then
-    :
-  else
+  if ! check_update ; then
     warn "check_update is failed. Probably using in-cache SDK."
   fi
 
@@ -87,8 +88,7 @@ fetch_sdk_if_needed() {
   fi
 }
 
-install_deps_if_needed
-if $? ; then
+if install_deps_if_needed ; then
   # if failed , show message and exit
   fail "[install_deps_if_needed] failed. Show output log."
 fi
