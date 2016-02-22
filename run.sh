@@ -29,6 +29,9 @@ check_update() {
   if [ -z $LATEST ]; then
     LAST_MODIFIED=$(stat -c%Y $GAE_VERSION_LOG_FILE 2> /dev/null)
     CURRENT_TIME=$(date +"%s")
+
+    debug "lastModified: $LAST_MODIFIED / currentTime: $CURRENT_TIME"
+
     if [ -z LAST_MODIFIED ] || [ CURRENT_TIME -gt $(( LAST_MODIFIED + 7 * 24 * 60 * 60 )) ]; then
       export LATEST=`curl https://appengine.google.com/api/updatecheck | grep release | grep -Eo '[0-9\.]+'`
     else
