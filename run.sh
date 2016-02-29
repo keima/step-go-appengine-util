@@ -55,7 +55,7 @@ semverlte() {
 }
 
 do_upgrade() {
-  if [ -z $LATEST ] ; then
+  if [ ! -z $LATEST ] ; then
     cd $WERCKER_CACHE_DIR
     local FILE=go_appengine_sdk_linux_amd64-$LATEST.zip
 
