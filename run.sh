@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-GAE_VERSION_LOG_FILE=go_appengine_version
+readonly GAE_VERSION_LOG_FILE=go_appengine_version
 
 install_deps_if_needed() {
   if hash unzip ; then
@@ -27,15 +27,16 @@ install_deps_if_needed() {
 
 check_update() {
   if [ -z $LATEST ]; then
-    LAST_MODIFIED=$(stat -c%Y $GAE_VERSION_LOG_FILE 2> /dev/null)
-    CURRENT_TIME=$(date +"%s")
+    local LAST_MODIFIED=$(stat -c%Y $GAE_VERSION_LOG_FILE 2> /dev/null)
+    local CURRENT_TIME=$(date +"%s")
+    local readonly APPEND_TIME=( 7 * 24 * 60 * 60 )
 
     debug "lastModified: $LAST_MODIFIED / currentTime: $CURRENT_TIME"
 
-    if [ -z LAST_MODIFIED ] || [ CURRENT_TIME -gt $(( LAST_MODIFIED + 7 * 24 * 60 * 60 )) ]; then
-      export LATEST=$(curl https://appengine.google.com/api/updatecheck | grep release | grep -Eo '[0-9\.]+')
+    if [ -z $LAST_MODIFIED ] || [ $CURRENT_TIME -gt $(( $LAST_MODIFIED + $APPEND_TIME )) ]; then
+      LATEST=$(curl https://appengine.google.com/api/updatecheck | grep release | grep -Eo '[0-9\.]+')
     else
-      export LATEST=$(echo $GAE_VERSION_LOG_FILE 2> /dev/null)
+      LATEST=$(echo $GAE_VERSION_LOG_FILE 2> /dev/null)
     fi
   fi
   return [ ! -z $LATEST ]
@@ -53,7 +54,7 @@ semverlte() {
 do_upgrade() {
   if [ -z $LATEST ] ; then
     cd $WERCKER_CACHE_DIR
-    FILE=go_appengine_sdk_linux_amd64-$LATEST.zip
+    local FILE=go_appengine_sdk_linux_amd64-$LATEST.zip
 
     debug "Download $FILE ..."
 
