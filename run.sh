@@ -33,9 +33,9 @@ check_update() {
     debug "lastModified: $LAST_MODIFIED / currentTime: $CURRENT_TIME"
 
     if [ -z LAST_MODIFIED ] || [ CURRENT_TIME -gt $(( LAST_MODIFIED + 7 * 24 * 60 * 60 )) ]; then
-      export LATEST=`curl https://appengine.google.com/api/updatecheck | grep release | grep -Eo '[0-9\.]+'`
+      export LATEST=$(curl https://appengine.google.com/api/updatecheck | grep release | grep -Eo '[0-9\.]+')
     else
-      export LATEST=`echo $GAE_VERSION_LOG_FILE 2> /dev/null`
+      export LATEST=$(echo $GAE_VERSION_LOG_FILE 2> /dev/null)
     fi
   fi
   return [ ! -z $LATEST ]
@@ -47,7 +47,7 @@ check_update() {
 #   semverlte 1.2.4 1.2.3 -> false
 # @see http://stackoverflow.com/a/4024263
 semverlte() {
-    [  "$1" = "`echo -e "$1\n$2" | sort -V | head -n1`" ]
+    [ "$1" = "`echo -e "$1\n$2" | sort -V | head -n1`" ]
 }
 
 do_upgrade() {
@@ -81,7 +81,7 @@ fetch_sdk_if_needed() {
   if [ -f "$WERCKER_CACHE_DIR/go_appengine/appcfg.py" ]; then
     debug "appcfg.py found in cache"
 
-    VERSION_CACHE=`echo $GAE_VERSION_LOG_FILE 2> /dev/null`
+    VERSION_CACHE=$(echo $GAE_VERSION_LOG_FILE 2> /dev/null)
     if [ ! -z $VERSION_CACHE ] && [ ! semverlte $LATEST $VERSION_CACHE ]; then
       info "go-appengine sdk ver. $LATEST is available. It's time to update!"
       do_upgrade
