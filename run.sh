@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-readonly GAE_VERSION_LOG_FILE=go_appengine_version
+readonly GAE_VERSION_LOG_FILE="$WERCKER_CACHE_DIR/go_appengine_version"
 
 install_deps_if_needed() {
   if hash unzip ; then
@@ -66,10 +66,13 @@ do_upgrade() {
       fail "curl error"
     fi
 
-    unzip -q $FILE -d $HOME
+    unzip -q -o $FILE
     if [ $? -ne 0 ] ; then
       fail "unzip error"
     fi
+
+    # write update log
+    echo $LATEST > $GAE_VERSION_LOG_FILE
 
     # debug
     ls -al
