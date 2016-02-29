@@ -39,6 +39,8 @@ check_update() {
       LATEST=$(echo $GAE_VERSION_LOG_FILE 2> /dev/null)
     fi
   fi
+
+  echo "latest: $LATEST"
   return [ ! -z $LATEST ]
 }
 
