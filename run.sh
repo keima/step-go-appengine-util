@@ -41,7 +41,8 @@ check_update() {
   fi
 
   echo "latest: $LATEST"
-  return [ ! -z $LATEST ]
+
+  [ ! -z $LATEST ]
 }
 
 # check semver
