@@ -62,14 +62,18 @@ do_upgrade() {
     debug "Download $FILE ..."
 
     curl -O https://storage.googleapis.com/appengine-sdks/featured/$FILE
-    if $? ; then
+    if [ $? -ne 0 ] ; then
       fail "curl error"
     fi
 
     unzip -q $FILE -d $HOME
-    if $? ; then
+    if [ $? -ne 0 ] ; then
       fail "unzip error"
     fi
+
+    # debug
+    ls -al
+
   else
     fail "\$LATEST is empty"
   fi
@@ -105,6 +109,10 @@ fetch_sdk_if_needed
 debug 'Set $PATH and $GOPATH'
 export PATH="$WERCKER_CACHE_DIR/go_appengine":$PATH
 export GOPATH="$WERCKER_SOURCE_DIR"
+
+debug 'Display $PATH and $GOPATH'
+echo $PATH
+echo $GOPATH
 
 debug 'Display $GOPATH'
 goapp env GOPATH
