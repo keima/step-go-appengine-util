@@ -125,7 +125,9 @@ fi
 
 debug 'Set $PATH and $GOPATH'
 export PATH="$WERCKER_CACHE_DIR/go_appengine":$PATH
-export GOPATH="$TARGET_DIRECTORY"
+
+# @see http://qiita.com/hogedigo/items/fae5b6fe7071becd4051
+#export GOPATH="$TARGET_DIRECTORY"
 
 debug 'Display $PATH and $GOPATH'
 echo $PATH
