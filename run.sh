@@ -71,6 +71,12 @@ do_upgrade() {
       fail "unzip error"
     fi
 
+    # workaround timestamp mess
+    # @see https://groups.google.com/forum/#!topic/google-appengine-go/rWc4TkhSECk
+    cd go_appengine/goroot
+    find . -name "*.a" -exec touch {} \;
+    cd -
+
     # write update log
     echo $LATEST > $GAE_VERSION_LOG_FILE
 
