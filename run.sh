@@ -127,22 +127,28 @@ else
     TARGET_DIRECTORY="$WERCKER_SOURCE_DIR"
 fi
 
+if [ ! -z $WERCKER_GO_APPENGINE_UTIL_VERBOSE ]; then
+    VERBOSE_FLAG="-v"
+else
+    VERBOSE_FLAG=""
+fi
+
 case $WERCKER_GO_APPENGINE_UTIL_METHOD in
   deploy)
     info "goapp deploy"
-    $WERCKER_CACHE_DIR/go_appengine/appcfg.py update "$WERCKER_SOURCE_DIR" --oauth2_refresh_token="$WERCKER_GO_APPENGINE_UTIL_TOKEN"
+    $WERCKER_CACHE_DIR/go_appengine/appcfg.py update "$TARGET_DIRECTORY" --oauth2_refresh_token="$WERCKER_GO_APPENGINE_UTIL_TOKEN"
     ;;
   get)
     info "goapp get"
-    goapp get
+    goapp get $VERBOSE_FLAG "$TARGET_DIRECTORY"
     ;;
   test)
     info "goapp test"
-    goapp test
+    goapp test "$TARGET_DIRECTORY"
     ;;
   build)
     info "goapp build"
-    goapp build
+    goapp build "$TARGET_DIRECTORY"
     ;;
   *)
     fail "Unknown parameter: $WERCKER_GO_APPENGINE_UTIL_METHOD"

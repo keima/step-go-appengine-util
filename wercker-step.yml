@@ -1,5 +1,5 @@
 name: go-appengine-util
-version: 0.0.22
+version: 0.0.23
 description: Deploy Go software to Google's AppEngine
 properties:
   method:
@@ -9,5 +9,8 @@ properties:
     type: string
     required: false
   target-directory:
+    type: string
+    required: false
+  verbose:
     type: string
     required: false
