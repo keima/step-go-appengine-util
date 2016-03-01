@@ -109,16 +109,6 @@ fi
 
 fetch_sdk_if_needed
 
-debug 'Set $PATH and $GOPATH'
-export PATH="$WERCKER_CACHE_DIR/go_appengine":$PATH
-#export GOPATH="$WERCKER_SOURCE_DIR"
-
-debug 'Display $PATH and $GOPATH'
-echo $PATH
-echo $GOPATH
-
-debug 'Display $GOPATH via goapp env'
-goapp env GOPATH
 
 if [ ! -z $WERCKER_GO_APPENGINE_UTIL_TARGET_DIRECTORY ]; then
     TARGET_DIRECTORY="$WERCKER_SOURCE_DIR/$WERCKER_GO_APPENGINE_UTIL_TARGET_DIRECTORY"
@@ -127,11 +117,17 @@ else
     TARGET_DIRECTORY="$WERCKER_SOURCE_DIR"
 fi
 
-if [ ! -z $WERCKER_GO_APPENGINE_UTIL_VERBOSE ]; then
-    VERBOSE_FLAG="-v"
-else
-    VERBOSE_FLAG=""
-fi
+debug 'Set $PATH and $GOPATH'
+export PATH="$WERCKER_CACHE_DIR/go_appengine":$PATH
+export GOPATH="$TARGET_DIRECTORY"
+
+debug 'Display $PATH and $GOPATH'
+echo $PATH
+echo $GOPATH
+
+debug 'Display $GOPATH via goapp env'
+goapp env GOPATH
+
 
 case $WERCKER_GO_APPENGINE_UTIL_METHOD in
   deploy)
@@ -140,15 +136,18 @@ case $WERCKER_GO_APPENGINE_UTIL_METHOD in
     ;;
   get)
     info "goapp get"
-    goapp get $VERBOSE_FLAG "$TARGET_DIRECTORY"
+    cd "$TARGET_DIRECTORY"
+    goapp get -d
     ;;
   test)
     info "goapp test"
-    goapp test "$TARGET_DIRECTORY"
+    cd "$TARGET_DIRECTORY"
+    goapp test
     ;;
   build)
     info "goapp build"
-    goapp build "$TARGET_DIRECTORY"
+    cd "$TARGET_DIRECTORY"
+    goapp build
     ;;
   *)
     fail "Unknown parameter: $WERCKER_GO_APPENGINE_UTIL_METHOD"

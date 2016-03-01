@@ -16,7 +16,9 @@ A step that deploys Go applications to Google App Engine.
 ## Options
 
 * `method` - `goapp` argument. Example is below. (required)
-* `target-directory` - change current directory to dir of `app.yaml` is exists. (optional)
+* `target-directory` - change current directory to specified dir.
+ - e.g. go source files are located in `/src/proj` and do `goapp get`, set `target-directory` to `/src/proj`
+ - e.g. app.yaml is located in `/` and do `goapp deploy`, may not be set `target-directory` to `/`
 
 ### `deploy` method
 
