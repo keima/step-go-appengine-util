@@ -93,7 +93,7 @@ fetch_sdk_if_needed() {
     debug "appcfg.py found in cache"
 
     VERSION_CACHE=$(echo $GAE_VERSION_LOG_FILE 2> /dev/null)
-    if [ ! -z $VERSION_CACHE ] && [ ! semverlte $LATEST $VERSION_CACHE ]; then
+    if [ ! -z $VERSION_CACHE ] && ! semverlte $LATEST $VERSION_CACHE; then
       info "go-appengine sdk ver. $LATEST is available. It's time to update!"
       do_upgrade
     fi
@@ -120,7 +120,9 @@ echo $GOPATH
 debug 'Display $GOPATH'
 goapp env GOPATH
 
-cd $WERCKER_GO_APPENGINE_UTIL_TARGET_DIRECTORY
+if [ ! -z $WERCKER_GO_APPENGINE_UTIL_TARGET_DIRECTORY ]; then
+    cd "$WERCKER_SOURCE_DIR/$WERCKER_GO_APPENGINE_UTIL_TARGET_DIRECTORY"
+fi
 
 case $WERCKER_GO_APPENGINE_UTIL_METHOD in
   deploy)
