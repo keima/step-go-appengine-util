@@ -7,6 +7,12 @@ A step that deploys Go applications to Google App Engine.
 - [MiCHiLU/step-go-appengine-deploy](https://github.com/MiCHiLU/step-go-appengine-deploy)
 - [grosinger/mac-and-cheese](https://github.com/tgrosinger/mac-and-cheese)
 
+## Limitation
+
+`$WERCKER_SOURCE_DIR`(gitのroot配下)もしくは`target-directory`オプション配下のディレクトリは、`$GOPATH`準拠になるようにしてください。
+具体的には`/src`ディレクトリ内にgoファイルを配置するようにしてください。
+加えて、上記ディレクトリ直下には`app.yaml`を含むようにしてください。
+
 ## Options
 
 * `method` - `goapp` argument. Example is below. (required)
