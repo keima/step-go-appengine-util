@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-. ./util.sh
+. `dirname $0`/util.sh
 
 readonly GAE_VERSION_LOG_FILE="$WERCKER_CACHE_DIR/go_appengine_version"
 readonly GAE_SDK_PATH="$WERCKER_CACHE_DIR/go_appengine"
