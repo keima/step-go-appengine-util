@@ -161,4 +161,8 @@ case $WERCKER_GO_APPENGINE_UTIL_METHOD in
     fail "Unknown parameter: $WERCKER_GO_APPENGINE_UTIL_METHOD"
 esac
 
-success "$WERCKER_GO_APPENGINE_UTIL_METHOD is Finished."
+if [ $? -eq 0 ]; then
+    success "$WERCKER_GO_APPENGINE_UTIL_METHOD is Finished. :)"
+else
+    fail "$WERCKER_GO_APPENGINE_UTIL_METHOD failed... :("
+fi
