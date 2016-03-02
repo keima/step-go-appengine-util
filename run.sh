@@ -70,16 +70,16 @@ do_upgrade() {
       fail "curl error"
     fi
 
-    $UNZIPPER $UNZIPPER_OPTION $FILE
+    $UNZIPPER $UNZIPPER_OPTION $FILE > /dev/null
     if [ $? -ne 0 ] ; then
       fail "$UNZIPPER error"
     fi
 
     # workaround timestamp mess
     # @see https://groups.google.com/forum/#!topic/google-appengine-go/rWc4TkhSECk
-    cd go_appengine/goroot
-    find . -name "*.a" -exec touch {} \;
-    cd -
+#    cd go_appengine/goroot
+#    find . -name "*.a" -exec touch {} \;
+#    cd -
 
     # write update log
     echo $LATEST > $GAE_VERSION_LOG_FILE
