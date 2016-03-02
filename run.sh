@@ -3,7 +3,8 @@
 readonly GAE_VERSION_LOG_FILE="$WERCKER_CACHE_DIR/go_appengine_version"
 readonly UNZIPPER=7z # unzip
 readonly UNZIPPER_OPTION="x" # "-q -o"
-readonly UNZIPPER_PKG=p7zip
+readonly UNZIPPER_PKG_APT=p7zip-full
+readonly UNZIPPER_PKG_YUM=p7zip
 
 install_deps_if_needed() {
   if hash $UNZIPPER ; then
@@ -12,11 +13,11 @@ install_deps_if_needed() {
     debug "$UNZIPPER is not found."
 
     if hash apt-get ; then
-      sudo apt-get update; sudo apt-get install $UNZIPPER_PKG -y
+      sudo apt-get update; sudo apt-get install $UNZIPPER_PKG_APT -y
     elif hash yum ; then
-      sudo yum install $UNZIPPER_PKG -y
+      sudo yum install $UNZIPPER_PKG_YUM -y
     else
-      fail "Not found neither suitable package manager nor $UNZIPPER_PKG."
+      fail "Not found neither suitable package manager nor $UNZIPPER."
     fi
 
     if hash $UNZIPPER ; then
