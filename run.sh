@@ -82,6 +82,8 @@ sdk_filename() {
 }
 
 do_download() {
+    cd $WERCKER_CACHE_DIR
+
     local FILE=`sdk_filename $LATEST`
 
     debug "Download $FILE ..."
@@ -90,9 +92,13 @@ do_download() {
     if [ $? -ne 0 ] ; then
       fail "curl error"
     fi
+
+    cd -
 }
 
 do_install() {
+    cd $WERCKER_CACHE_DIR
+
     if [ -d $GAE_SDK_PATH ]; then
         debug "Removing old sdk dir"
         rm -rf $GAE_SDK_PATH
@@ -105,18 +111,20 @@ do_install() {
     if [ $? -ne 0 ] ; then
       fail "$UNZIPPER error"
     fi
+
+    cd -
 }
 
 do_upgrade() {
   if [ ! -z $LATEST ] ; then
-    cd $WERCKER_CACHE_DIR
-
     do_download
     # do_install は fetch_sdk_if_needed で行う
 
     # write update log
+    cd $WERCKER_CACHE_DIR
     local CURRENT_TIME=$(date +"%s")
     echo -e "$CURRENT_TIME\n$LATEST" > $GAE_VERSION_LOG_FILE
+    cd -
 
     # debug
     ls -al
