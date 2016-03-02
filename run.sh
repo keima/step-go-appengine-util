@@ -166,7 +166,17 @@ case $WERCKER_GO_APPENGINE_UTIL_METHOD in
 esac
 
 if [ $? -eq 0 ]; then
+    debug "Stat -----"
+
+    ls -l $WERCKER_CACHE_DIR/go_appengine/goroot/src/hash/crc32/
+    ls -l $WERCKER_CACHE_DIR/go_appengine/goroot/pkg/linux_amd64_appengine/hash/
+
     success "$WERCKER_GO_APPENGINE_UTIL_METHOD is Finished. :)"
 else
+    debug "Stat -----"
+
+    ls -l $WERCKER_CACHE_DIR/go_appengine/goroot/src/hash/crc32/
+    ls -l $WERCKER_CACHE_DIR/go_appengine/goroot/pkg/linux_amd64_appengine/hash/
+
     fail "$WERCKER_GO_APPENGINE_UTIL_METHOD failed... :("
 fi
