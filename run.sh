@@ -79,14 +79,14 @@ check_update() {
   if [ -z $LATEST ]; then
     local LAST_MODIFIED=`singleline $GAE_VERSION_LOG_FILE $GAE_LOG_TIMESTAMP`
     local CURRENT_TIME=$(date +"%s")
-    local readonly APPEND_TIME=( 7 * 24 * 60 * 60 )
+    local readonly APPEND_TIME=604800 # 7 * 24 * 60 * 60
 
     debug "lastModified: $LAST_MODIFIED / currentTime: $CURRENT_TIME"
 
     if [ -z $LAST_MODIFIED ] || [ $CURRENT_TIME -gt $(( $LAST_MODIFIED + $APPEND_TIME )) ]; then
       LATEST=$(curl https://appengine.google.com/api/updatecheck | grep release | grep -Eo '[0-9\.]+')
     else
-      LATEST=$LAST_MODIFIED
+      LATEST=`singleline $GAE_VERSION_LOG_FILE $GAE_LOG_VERSION`
     fi
   fi
 
@@ -147,7 +147,10 @@ do_install() {
 }
 
 do_upgrade() {
-  if [ ! -z $LATEST ] ; then
+    if [ -z $LATEST ] ; then
+        fail "\$LATEST is empty"
+    fi
+
     do_download
     # do_install は fetch_sdk_if_needed で行う
 
@@ -159,9 +162,6 @@ do_upgrade() {
     ls -al # debug
 
     cd -
-  else
-    fail "\$LATEST is empty"
-  fi
 }
 
 # fetch GAE/Go SDKs if needed
