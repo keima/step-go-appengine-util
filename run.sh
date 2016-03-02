@@ -1,13 +1,25 @@
 #!/usr/bin/env bash
 
+. ./util.sh
+
 readonly GAE_VERSION_LOG_FILE="$WERCKER_CACHE_DIR/go_appengine_version"
+readonly GAE_SDK_PATH="$WERCKER_CACHE_DIR/go_appengine"
 readonly GAE_LOG_TIMESTAMP=1
 readonly GAE_LOG_VERSION=2
+
+readonly GAE_GOPATH="$WERCKER_CACHE_DIR/gopath"
 
 readonly UNZIPPER=7z # unzip
 readonly UNZIPPER_OPTION="x" # "-q -o"
 readonly UNZIPPER_PKG_APT=p7zip-full
 readonly UNZIPPER_PKG_YUM=p7zip
+
+setup_gopath() {
+    if [ ! -d $GAE_GOPATH ]; then
+        mkdir $GAE_GOPATH
+    fi
+    export GOPATH=$GAE_GOPATH
+}
 
 install_deps_if_needed() {
   if hash $UNZIPPER ; then
@@ -32,27 +44,6 @@ install_deps_if_needed() {
   fi
 }
 
-# get string at file's spefified line number
-# singleline FILE LINE_NUM
-#   singleline hoge 5 -> (line 5 at hoge) and return (head and tail return val)
-#   singleline hoge five -> "" and return 1
-#   singleline NOT_EXIST 5 -> "" and return 1
-#   singleline hoge 99999(not exist line) -> "" and return 0
-singleline() {
-    # argument check
-    expr "$2" + 1 >/dev/null 2>&1
-    if [ $? -ge 2 ]; then
-        echo ""; return 1
-    fi
-
-    if [ ! -e $1 ]; then
-        echo ""; return 1
-    fi
-
-    # logic
-    head -$2 $1 | tail -1
-}
-
 check_update() {
   if [ -z $LATEST ]; then
     local LAST_MODIFIED=`singleline $GAE_VERSION_LOG_FILE $GAE_LOG_TIMESTAMP`
@@ -73,31 +64,25 @@ check_update() {
   [ ! -z $LATEST ]
 }
 
-# check semver
-#   semverlte 1.2.3 1.2.4 -> true
-#   semverlte 1.2.3 1.2.3 -> true
-#   semverlte 1.2.4 1.2.3 -> false
-# @see http://stackoverflow.com/a/4024263
-semverlte() {
-    [ "$1" = "`echo -e "$1\n$2" | sort -V | head -n1`" ]
-}
-
 # workaround timestamp messup fix
 # @see https://groups.google.com/forum/#!topic/google-appengine-go/rWc4TkhSECk
 fix_sdk_timestamp_messup() {
-    if [ -d $WERCKER_CACHE_DIR/go_appengine ]; then
+    if [ -d $GAE_SDK_PATH ]; then
         debug "Apply SDK timestamp mess-up..."
 
-        cd $WERCKER_CACHE_DIR/go_appengine/goroot
+        cd $GAE_SDK_PATH/goroot
         find . -name "*.a" -exec touch {} \;
         cd -
     fi
 }
 
-do_upgrade() {
-  if [ ! -z $LATEST ] ; then
-    cd $WERCKER_CACHE_DIR
-    local FILE=go_appengine_sdk_linux_amd64-$LATEST.zip
+# sdk_filename 1.2.3 -> "go_appengine_sdk_linux_amd64-1.2.3.zip"
+sdk_filename() {
+    echo "go_appengine_sdk_linux_amd64-$1.zip"
+}
+
+do_download() {
+    local FILE=`sdk_filename $LATEST`
 
     debug "Download $FILE ..."
 
@@ -105,11 +90,29 @@ do_upgrade() {
     if [ $? -ne 0 ] ; then
       fail "curl error"
     fi
+}
 
+do_install() {
+    if [ -d $GAE_SDK_PATH ]; then
+        debug "Removing old sdk dir"
+        rm -rf $GAE_SDK_PATH
+    fi
+
+    local FILE=`sdk_filename $LATEST`
+
+    debug "Extracting $FILE ..."
     $UNZIPPER $UNZIPPER_OPTION $FILE > /dev/null
     if [ $? -ne 0 ] ; then
       fail "$UNZIPPER error"
     fi
+}
+
+do_upgrade() {
+  if [ ! -z $LATEST ] ; then
+    cd $WERCKER_CACHE_DIR
+
+    do_download
+    # do_install は fetch_sdk_if_needed で行う
 
     # write update log
     local CURRENT_TIME=$(date +"%s")
@@ -130,7 +133,7 @@ fetch_sdk_if_needed() {
     warn "check_update is failed. Probably using in-cache SDK."
   fi
 
-  if [ -f "$WERCKER_CACHE_DIR/go_appengine/appcfg.py" ]; then
+  if [ -f "$GAE_SDK_PATH/appcfg.py" ]; then
     debug "appcfg.py found in cache"
 
     VERSION_CACHE=`singleline $GAE_VERSION_LOG_FILE $GAE_LOG_VERSION`
@@ -141,6 +144,8 @@ fetch_sdk_if_needed() {
   else
     do_upgrade
   fi
+
+  do_install
 }
 
 if ! install_deps_if_needed ; then
@@ -150,8 +155,6 @@ fi
 
 fetch_sdk_if_needed
 
-fix_sdk_timestamp_messup
-
 if [ ! -z $WERCKER_GO_APPENGINE_UTIL_TARGET_DIRECTORY ]; then
     TARGET_DIRECTORY="$WERCKER_SOURCE_DIR/$WERCKER_GO_APPENGINE_UTIL_TARGET_DIRECTORY"
     cd $TARGET_DIRECTORY
@@ -160,10 +163,9 @@ else
 fi
 
 debug 'Set $PATH and $GOPATH'
-export PATH="$WERCKER_CACHE_DIR/go_appengine":$PATH
+export PATH="$GAE_SDK_PATH":$PATH
 
-# @see http://qiita.com/hogedigo/items/fae5b6fe7071becd4051
-#export GOPATH="$TARGET_DIRECTORY"
+setup_gopath
 
 debug 'Display $PATH and $GOPATH'
 echo $PATH
@@ -176,7 +178,7 @@ goapp env GOPATH
 case $WERCKER_GO_APPENGINE_UTIL_METHOD in
   deploy)
     info "goapp deploy"
-    $WERCKER_CACHE_DIR/go_appengine/appcfg.py update "$TARGET_DIRECTORY" --oauth2_refresh_token="$WERCKER_GO_APPENGINE_UTIL_TOKEN"
+    $GAE_SDK_PATH/appcfg.py update "$TARGET_DIRECTORY" --oauth2_refresh_token="$WERCKER_GO_APPENGINE_UTIL_TOKEN"
     ;;
   get)
     info "goapp get"
@@ -197,18 +199,13 @@ case $WERCKER_GO_APPENGINE_UTIL_METHOD in
     fail "Unknown parameter: $WERCKER_GO_APPENGINE_UTIL_METHOD"
 esac
 
+debug "Stat -----"
+
+ls -l $GAE_SDK_PATH/goroot/src/hash/crc32/
+ls -l $GAE_SDK_PATH/goroot/pkg/linux_amd64_appengine/hash/
+
 if [ $? -eq 0 ]; then
-    debug "Stat -----"
-
-    ls -l $WERCKER_CACHE_DIR/go_appengine/goroot/src/hash/crc32/
-    ls -l $WERCKER_CACHE_DIR/go_appengine/goroot/pkg/linux_amd64_appengine/hash/
-
     success "$WERCKER_GO_APPENGINE_UTIL_METHOD is Finished. :)"
 else
-    debug "Stat -----"
-
-    ls -l $WERCKER_CACHE_DIR/go_appengine/goroot/src/hash/crc32/
-    ls -l $WERCKER_CACHE_DIR/go_appengine/goroot/pkg/linux_amd64_appengine/hash/
-
     fail "$WERCKER_GO_APPENGINE_UTIL_METHOD failed... :("
 fi
