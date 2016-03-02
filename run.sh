@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 
 readonly GAE_VERSION_LOG_FILE="$WERCKER_CACHE_DIR/go_appengine_version"
+readonly GAE_LOG_TIMESTAMP=1
+readonly GAE_LOG_VERSION=2
+
 readonly UNZIPPER=7z # unzip
 readonly UNZIPPER_OPTION="x" # "-q -o"
 readonly UNZIPPER_PKG_APT=p7zip-full
@@ -29,9 +32,30 @@ install_deps_if_needed() {
   fi
 }
 
+# get string at file's spefified line number
+# singleline FILE LINE_NUM
+#   singleline hoge 5 -> (line 5 at hoge) and return (head and tail return val)
+#   singleline hoge five -> "" and return 1
+#   singleline NOT_EXIST 5 -> "" and return 1
+#   singleline hoge 99999(not exist line) -> "" and return 0
+singleline() {
+    # argument check
+    expr "$2" + 1 >/dev/null 2>&1
+    if [ $? -ge 2 ]; then
+        echo ""; return 1
+    fi
+
+    if [ ! -e $1 ]; then
+        echo ""; return 1
+    fi
+
+    # logic
+    head -$2 $1 | tail -1
+}
+
 check_update() {
   if [ -z $LATEST ]; then
-    local LAST_MODIFIED=$(stat -c%Y $GAE_VERSION_LOG_FILE 2> /dev/null)
+    local LAST_MODIFIED=`singleline $GAE_VERSION_LOG_FILE $GAE_LOG_TIMESTAMP`
     local CURRENT_TIME=$(date +"%s")
     local readonly APPEND_TIME=( 7 * 24 * 60 * 60 )
 
@@ -40,7 +64,7 @@ check_update() {
     if [ -z $LAST_MODIFIED ] || [ $CURRENT_TIME -gt $(( $LAST_MODIFIED + $APPEND_TIME )) ]; then
       LATEST=$(curl https://appengine.google.com/api/updatecheck | grep release | grep -Eo '[0-9\.]+')
     else
-      LATEST=$(echo $GAE_VERSION_LOG_FILE 2> /dev/null)
+      LATEST=$LAST_MODIFIED
     fi
   fi
 
@@ -56,6 +80,18 @@ check_update() {
 # @see http://stackoverflow.com/a/4024263
 semverlte() {
     [ "$1" = "`echo -e "$1\n$2" | sort -V | head -n1`" ]
+}
+
+# workaround timestamp messup fix
+# @see https://groups.google.com/forum/#!topic/google-appengine-go/rWc4TkhSECk
+fix_sdk_timestamp_messup() {
+    if [ -d $WERCKER_CACHE_DIR/go_appengine ]; then
+        debug "Apply SDK timestamp mess-up..."
+
+        cd $WERCKER_CACHE_DIR/go_appengine/goroot
+        find . -name "*.a" -exec touch {} \;
+        cd -
+    fi
 }
 
 do_upgrade() {
@@ -75,14 +111,9 @@ do_upgrade() {
       fail "$UNZIPPER error"
     fi
 
-    # workaround timestamp mess
-    # @see https://groups.google.com/forum/#!topic/google-appengine-go/rWc4TkhSECk
-#    cd go_appengine/goroot
-#    find . -name "*.a" -exec touch {} \;
-#    cd -
-
     # write update log
-    echo $LATEST > $GAE_VERSION_LOG_FILE
+    local CURRENT_TIME=$(date +"%s")
+    echo -e "$CURRENT_TIME\n$LATEST" > $GAE_VERSION_LOG_FILE
 
     # debug
     ls -al
@@ -102,7 +133,7 @@ fetch_sdk_if_needed() {
   if [ -f "$WERCKER_CACHE_DIR/go_appengine/appcfg.py" ]; then
     debug "appcfg.py found in cache"
 
-    VERSION_CACHE=$(echo $GAE_VERSION_LOG_FILE 2> /dev/null)
+    VERSION_CACHE=`singleline $GAE_VERSION_LOG_FILE $GAE_LOG_VERSION`
     if [ ! -z $VERSION_CACHE ] && ! semverlte $LATEST $VERSION_CACHE; then
       info "go-appengine sdk ver. $LATEST is available. It's time to update!"
       do_upgrade
@@ -119,6 +150,7 @@ fi
 
 fetch_sdk_if_needed
 
+fix_sdk_timestamp_messup
 
 if [ ! -z $WERCKER_GO_APPENGINE_UTIL_TARGET_DIRECTORY ]; then
     TARGET_DIRECTORY="$WERCKER_SOURCE_DIR/$WERCKER_GO_APPENGINE_UTIL_TARGET_DIRECTORY"
