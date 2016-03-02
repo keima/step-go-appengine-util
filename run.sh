@@ -1,25 +1,28 @@
 #!/usr/bin/env bash
 
 readonly GAE_VERSION_LOG_FILE="$WERCKER_CACHE_DIR/go_appengine_version"
+readonly UNZIPPER=7z # unzip
+readonly UNZIPPER_OPTION="x" # "-q -o"
+readonly UNZIPPER_PKG=p7zip
 
 install_deps_if_needed() {
-  if hash unzip ; then
+  if hash $UNZIPPER ; then
     return 0
   else
-    debug "unzip is not found."
+    debug "$UNZIPPER is not found."
 
     if hash apt-get ; then
-      sudo apt-get update; sudo apt-get install unzip -y
+      sudo apt-get update; sudo apt-get install $UNZIPPER_PKG -y
     elif hash yum ; then
-      sudo yum install unzip -y
+      sudo yum install $UNZIPPER_PKG -y
     else
-      fail "Not found neither suitable package manager nor unzip."
+      fail "Not found neither suitable package manager nor $UNZIPPER_PKG."
     fi
 
-    if hash unzip ; then
+    if hash $UNZIPPER ; then
       return 0
     else
-      debug "unzip is not found."
+      debug "$UNZIPPER is not found."
       return 1
     fi
   fi
@@ -66,9 +69,9 @@ do_upgrade() {
       fail "curl error"
     fi
 
-    unzip -q -o $FILE
+    $UNZIPPER $UNZIPPER_OPTION $FILE
     if [ $? -ne 0 ] ; then
-      fail "unzip error"
+      fail "$UNZIPPER error"
     fi
 
     # workaround timestamp mess
