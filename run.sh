@@ -44,6 +44,15 @@ semverlte() {
 
 ##########
 
+deprecation_check() {
+    if [ ! -z ${WERCKER_GO_APPENGINE_UTIL_TARGET_DIRECTORY} ]; then
+        warn "`target-directory` attr is deprecated since ver.0.1.0.\n"\
+         "Please use `cwd` attr (wercker-builtin) instead.\n"\
+         "(This attr will removed for ver.1.0.0.)"
+
+        cd ${WERCKER_GO_APPENGINE_UTIL_TARGET_DIRECTORY}
+    fi
+}
 
 setup_gopath() {
     if [ ! -d ${GAE_GOPATH} ]; then
@@ -172,19 +181,14 @@ fetch_sdk_if_needed() {
   do_install
 }
 
+deprecation_check
+
 if ! install_deps_if_needed ; then
   # if failed , show message and exit
   fail "[install_deps_if_needed] failed. Show output log."
 fi
 
 fetch_sdk_if_needed
-
-if [ ! -z ${WERCKER_GO_APPENGINE_UTIL_TARGET_DIRECTORY} ]; then
-    TARGET_DIRECTORY="$WERCKER_SOURCE_DIR/$WERCKER_GO_APPENGINE_UTIL_TARGET_DIRECTORY"
-    cd ${TARGET_DIRECTORY}
-else
-    TARGET_DIRECTORY="$WERCKER_SOURCE_DIR"
-fi
 
 debug 'Set $PATH and $GOPATH'
 export PATH="$GAE_SDK_PATH":$PATH
@@ -194,21 +198,18 @@ setup_gopath
 case ${WERCKER_GO_APPENGINE_UTIL_METHOD} in
   deploy)
     info "goapp deploy"
-    ${GAE_SDK_PATH}/appcfg.py update "$TARGET_DIRECTORY" --oauth2_refresh_token="$WERCKER_GO_APPENGINE_UTIL_TOKEN"
+    ${GAE_SDK_PATH}/appcfg.py update ./ --oauth2_refresh_token="$WERCKER_GO_APPENGINE_UTIL_TOKEN"
     ;;
   get)
     info "goapp get"
-    cd "$TARGET_DIRECTORY"
     goapp get -d
     ;;
   test)
     info "goapp test"
-    cd "$TARGET_DIRECTORY"
     goapp test
     ;;
   build)
     info "goapp build"
-    cd "$TARGET_DIRECTORY"
     goapp build
     ;;
   *)
