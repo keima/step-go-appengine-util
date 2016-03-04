@@ -159,8 +159,6 @@ do_upgrade() {
     local CURRENT_TIME=$(date +"%s")
     echo -e "$CURRENT_TIME\n$LATEST" > $GAE_VERSION_LOG_FILE
 
-    ls -al # debug
-
     cd -
 }
 
@@ -202,15 +200,7 @@ fi
 
 debug 'Set $PATH and $GOPATH'
 export PATH="$GAE_SDK_PATH":$PATH
-
 setup_gopath
-
-debug 'Display $PATH and $GOPATH'
-echo $PATH
-echo $GOPATH
-
-debug 'Display $GOPATH via goapp env'
-goapp env GOPATH
 
 
 case $WERCKER_GO_APPENGINE_UTIL_METHOD in
@@ -236,11 +226,6 @@ case $WERCKER_GO_APPENGINE_UTIL_METHOD in
   *)
     fail "Unknown parameter: $WERCKER_GO_APPENGINE_UTIL_METHOD"
 esac
-
-debug "Stat -----"
-
-ls -l $GAE_SDK_PATH/goroot/src/hash/crc32/
-ls -l $GAE_SDK_PATH/goroot/pkg/linux_amd64_appengine/hash/
 
 if [ $? -eq 0 ]; then
     success "$WERCKER_GO_APPENGINE_UTIL_METHOD is Finished. :)"
