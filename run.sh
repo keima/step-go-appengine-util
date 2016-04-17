@@ -48,7 +48,7 @@ deprecation_check() {
     if [ ! -z ${WERCKER_GO_APPENGINE_UTIL_TARGET_DIRECTORY} ]; then
         warn "`target-directory` attr is deprecated since ver.0.1.0.\n"\
          "Please use `cwd` attr (wercker-builtin) instead.\n"\
-         "(This attr will removed for ver.1.0.0.)"
+         "(This attr will be removed at ver.1.0.0.)"
 
         cd ${WERCKER_GO_APPENGINE_UTIL_TARGET_DIRECTORY}
     fi

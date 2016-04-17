@@ -20,15 +20,20 @@ A step that deploys Go applications to Google App Engine.
 ## Options
 
 * `method` - `goapp` argument. Option is below. (required)
-* `cwd` (wercker built-in) - change current directory to specified dir. (required if needed)
+* `cwd` (wercker built-in) - change current directory to specified dir. (optional)
  - e.g. go source files are located in `/src/proj` and you'll do `goapp get`, set `cwd` to `/src/proj`.
  - e.g. app.yaml is located in `/` and you'll do `goapp deploy`, may not be set `cwd` to `/` because WERCKER_SRC is `/`.
+* `gopath` - additional GOPATH env variant. (optional)
+ - Default GOPATH is `$WERCKER_CACHE_DIR/gopath`. If you set this option, GOPATH is `(additional GOPATH):$WERCKER_CACHE_DIR/gopath`
+ - If your repo is aimed to set `/` (git repo root) as GOPATH, this option is useful. 
 
 ### `deploy` method
 
+This method's current dir SHOULD contains `app.yaml`.
+
 #### Options
 
-* `token` - The OAuth 2.0 refresh token of the Google account to use for deployment.
+* `token` - The OAuth 2.0 refresh token of the Google account to use for deployment. (required if using deploy method)
 
 ### `get` method
 
