@@ -11,3 +11,6 @@ properties:
   target-directory:
     type: string
     required: false
+  gopath:
+    type: string
+    required: false

@@ -55,10 +55,18 @@ deprecation_check() {
 }
 
 setup_gopath() {
+    local _GOPATH=""
+
     if [ ! -d ${GAE_GOPATH} ]; then
         mkdir ${GAE_GOPATH}
     fi
-    export GOPATH=${GAE_GOPATH}
+    _GOPATH=${GAE_GOPATH}
+
+    if [ ! -z ${WERCKER_GO_APPENGINE_UTIL_GOPATH} ]; then
+        _GOPATH=${WERCKER_GO_APPENGINE_UTIL_GOPATH}:${_GOPATH}
+    fi
+
+    export GOPATH=${_GOPATH}
 }
 
 install_deps_if_needed() {
