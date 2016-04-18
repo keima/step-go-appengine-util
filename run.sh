@@ -63,10 +63,11 @@ setup_gopath() {
     _GOPATH=${GAE_GOPATH}
 
     if [ ! -z ${WERCKER_GO_APPENGINE_UTIL_GOPATH} ]; then
-        _GOPATH=${WERCKER_GO_APPENGINE_UTIL_GOPATH}:${_GOPATH}
+        _GOPATH=${_GOPATH}:${WERCKER_GO_APPENGINE_UTIL_GOPATH}
     fi
 
     export GOPATH=${_GOPATH}
+    debug "\$GOPATH=${GOPATH}"
 }
 
 install_deps_if_needed() {

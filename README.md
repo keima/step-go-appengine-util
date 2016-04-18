@@ -24,8 +24,9 @@ A step that deploys Go applications to Google App Engine.
  - e.g. go source files are located in `/src/proj` and you'll do `goapp get`, set `cwd` to `/src/proj`.
  - e.g. app.yaml is located in `/` and you'll do `goapp deploy`, may not be set `cwd` to `/` because WERCKER_SRC is `/`.
 * `gopath` - additional GOPATH env variant. (optional)
- - Default GOPATH is `$WERCKER_CACHE_DIR/gopath`. If you set this option, GOPATH is `(additional GOPATH):$WERCKER_CACHE_DIR/gopath`
- - If your repo is aimed to set `/` (git repo root) as GOPATH, this option is useful. 
+ - Default GOPATH is `$WERCKER_CACHE_DIR/gopath`(for output directory of `goapp get`).
+ - If you set this option, GOPATH is `$WERCKER_CACHE_DIR/gopath:(additional GOPATH)`
+ - If your repo is aimed to set `$WERCKER_SOURCE_DIR` ( equal git repo root ) as GOPATH, this option is useful.
 
 ### `deploy` method
 
