@@ -212,6 +212,8 @@ case ${WERCKER_GO_APPENGINE_UTIL_METHOD} in
   get)
     info "goapp get"
     goapp get -d
+
+    ls -al ${GAE_GOPATH}
     ;;
   test)
     info "goapp test"
