@@ -118,6 +118,22 @@ sdk_filename() {
     echo "go_appengine_sdk_linux_amd64-$1.zip"
 }
 
+do_upgrade() {
+    if [ -z ${LATEST} ] ; then
+        fail "\$LATEST is empty"
+    fi
+
+    do_download
+    # do_install は fetch_sdk_if_needed で行う
+
+    # write update log
+    cd ${WERCKER_CACHE_DIR}
+    local CURRENT_TIME=$(date +"%s")
+    echo -e "$CURRENT_TIME\n$LATEST" > ${GAE_VERSION_LOG_FILE}
+
+    cd -
+}
+
 do_download() {
     cd ${WERCKER_CACHE_DIR}
 
@@ -141,29 +157,16 @@ do_install() {
         rm -rf ${GAE_SDK_PATH}
     fi
 
-    local FILE=`sdk_filename ${LATEST}`
+    # Regardless of outdated or not, this variant has version string of downloaded (or cached) appengine
+    local CURRENT=`singleline ${GAE_VERSION_LOG_FILE} ${GAE_LOG_VERSION}`
+
+    local FILE=`sdk_filename ${CURRENT}`
 
     debug "Extracting $FILE ..."
     ${UNZIPPER} ${UNZIPPER_OPTION} ${FILE} > /dev/null
     if [ $? -ne 0 ] ; then
       fail "$UNZIPPER error"
     fi
-
-    cd -
-}
-
-do_upgrade() {
-    if [ -z ${LATEST} ] ; then
-        fail "\$LATEST is empty"
-    fi
-
-    do_download
-    # do_install は fetch_sdk_if_needed で行う
-
-    # write update log
-    cd ${WERCKER_CACHE_DIR}
-    local CURRENT_TIME=$(date +"%s")
-    echo -e "$CURRENT_TIME\n$LATEST" > ${GAE_VERSION_LOG_FILE}
 
     cd -
 }
