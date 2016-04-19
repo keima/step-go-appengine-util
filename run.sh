@@ -216,7 +216,12 @@ case ${WERCKER_GO_APPENGINE_UTIL_METHOD} in
     info "goapp get"
     goapp get -d
 
-    ls -al ${GAE_GOPATH}
+    debug "ls of ${GAE_GOPATH}"
+    ls -al ${GAE_GOPATH}/src
+
+    debug "ls of ${WERCKER_SOURCE_DIR}"
+    ls -al ${WERCKER_SOURCE_DIR}/src
+
     ;;
   test)
     info "goapp test"
